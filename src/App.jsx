@@ -104,10 +104,12 @@ function App() {
 
     setSaving(true);
     try {
-      await saveToSheet(data);
-      alert("데이터 전송이 완료되었습니다.");
+      // Pass session name to help identify data in sheet
+      await saveToSheet(data, activeSession?.name || 'Unknown Session');
+      alert("데이터 전송이 완료되었습니다."); // Note: Due to no-cors, we assume success if no network error
     } catch (error) {
-      alert("저장 중 오류가 발생했습니다.");
+      console.error(error);
+      alert("저장 중 오류가 발생했습니다. (콘솔 확인 필요)");
     } finally {
       setSaving(false);
     }
