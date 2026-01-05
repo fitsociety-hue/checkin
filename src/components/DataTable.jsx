@@ -3,7 +3,7 @@ import { QRCodeCanvas } from 'qrcode.react';
 import { motion } from 'framer-motion';
 import { Trash2 } from 'lucide-react';
 
-const DataTable = ({ data, onDelete }) => {
+const DataTable = ({ data, onDelete, onBatchDelete }) => {
     const [selectedPhones, setSelectedPhones] = useState(new Set());
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -30,11 +30,26 @@ const DataTable = ({ data, onDelete }) => {
 
     const handleDeleteSelected = () => {
         if (selectedPhones.size === 0) return;
-        if (confirm(`${selectedPhones.size}명을 삭제하시겠습니까?`)) {
-            // Since logic for batch delete is complex to link back without a proper batch-delete prop,
-            // we will iterate and delete. 
-            // Ideally `onDeleteBatch` prop should be used.
-            alert("일괄 삭제 기능은 상위 데이터 업데이트 로직과 연결되어야 합니다. 현재 개별 삭제만 지원됩니다.");
+
+        const password = prompt(`${selectedPhones.size}명을 삭제하려면 비밀번호 '1107'을 입력하세요.`);
+        if (password === '1107') {
+            if (onBatchDelete) {
+                onBatchDelete(Array.from(selectedPhones));
+                setSelectedPhones(new Set());
+            } else {
+                alert("일괄 삭제 기능이 지원되지 않는 버전입니다.");
+            }
+        } else if (password !== null) {
+            alert("비밀번호가 올바르지 않습니다.");
+        }
+    };
+
+    const handleDeleteOne = (phone) => {
+        const password = prompt("삭제하려면 비밀번호 '1107'을 입력하세요.");
+        if (password === '1107') {
+            if (onDelete) onDelete(phone);
+        } else if (password !== null) {
+            alert("비밀번호가 올바르지 않습니다.");
         }
     };
 
@@ -61,6 +76,14 @@ const DataTable = ({ data, onDelete }) => {
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
                     />
+                    {selectedPhones.size > 0 && (
+                        <button
+                            className="btn-danger py-1 px-3 text-xs flex items-center gap-1"
+                            onClick={handleDeleteSelected}
+                        >
+                            <Trash2 size={14} /> 선택 삭제
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -110,7 +133,7 @@ const DataTable = ({ data, onDelete }) => {
                                 </td>
                                 <td className="px-4 py-3 text-right">
                                     <button
-                                        onClick={() => onDelete && onDelete(row.phone)}
+                                        onClick={() => handleDeleteOne(row.phone)}
                                         className="text-gray-400 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-red-50"
                                     >
                                         <Trash2 size={16} />
