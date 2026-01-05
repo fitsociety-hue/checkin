@@ -67,8 +67,8 @@ const SessionManager = ({ sessions, onCreateSession, onDeleteSession, onSelectSe
                                 key={session.id}
                                 onClick={() => onSelectSession(session.id)}
                                 className={`p-4 rounded-xl border cursor-pointer transition-all relative group ${activeSessionId === session.id
-                                        ? 'bg-indigo-50 border-indigo-200 shadow-sm ring-1 ring-indigo-200'
-                                        : 'bg-white border-gray-100 hover:border-indigo-100 hover:shadow-md'
+                                    ? 'bg-indigo-50 border-indigo-200 shadow-sm ring-1 ring-indigo-200'
+                                    : 'bg-white border-gray-100 hover:border-indigo-100 hover:shadow-md'
                                     }`}
                             >
                                 <div className="flex justify-between items-start">
@@ -88,7 +88,15 @@ const SessionManager = ({ sessions, onCreateSession, onDeleteSession, onSelectSe
                                 </div>
 
                                 <button
-                                    onClick={(e) => { e.stopPropagation(); onDeleteSession(session.id); }}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        const password = prompt("행사를 삭제하려면 비밀번호 4자리(1107)를 입력하세요.");
+                                        if (password === '1107') {
+                                            onDeleteSession(session.id);
+                                        } else if (password !== null) {
+                                            alert("비밀번호가 올바르지 않습니다.");
+                                        }
+                                    }}
                                     className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 p-2 text-gray-300 hover:text-red-400 transition-opacity"
                                     title="행사 삭제"
                                 >
