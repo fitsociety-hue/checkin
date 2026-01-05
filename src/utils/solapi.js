@@ -60,10 +60,9 @@ export const uploadImage = async (apiKey, apiSecret, base64Image) => {
   const authHeader = `HMAC-SHA256 apiKey=${apiKey}, date=${date}, salt=${salt}, signature=${signature}`;
 
   try {
-    // Safer base64 stripping
-    const cleanBase64 = base64Image.includes('base64,')
-      ? base64Image.split('base64,')[1]
-      : base64Image;
+    // Solapi logic for file upload: "file" field must be the base64 string without header.
+    // Ensure we strip *any* data URI scheme prefix.
+    const cleanBase64 = base64Image.replace(/^data:image\/[a-z]+;base64,/, "");
 
     const response = await axios.post('https://api.solapi.com/storage/v1/files', {
       file: cleanBase64,
@@ -76,7 +75,8 @@ export const uploadImage = async (apiKey, apiSecret, base64Image) => {
     });
     return response.data.fileId;
   } catch (error) {
-    console.error("Image Upload Error Response:", error.response?.data || error.message);
+    const errorDetails = error.response?.data || error.message;
+    console.error("Image Upload Error Details:", JSON.stringify(errorDetails));
     throw error;
   }
 }

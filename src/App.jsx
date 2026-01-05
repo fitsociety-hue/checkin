@@ -3,49 +3,104 @@ import FileUploader from './components/FileUploader';
 import DataTable from './components/DataTable';
 import SMSPanel from './components/SMSPanel';
 import Dashboard from './components/Dashboard';
-import { QrCode, Trash2, Database, LayoutDashboard, Send } from 'lucide-react';
+import SessionManager from './components/SessionManager';
+import { QrCode, Trash2, Database, LayoutDashboard, Send, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { saveToSheet } from './utils/googleSheets';
 
 function App() {
-  const [mode, setMode] = useState('generator'); // 'generator' | 'dashboard'
-  const [data, setData] = useState(() => {
-    const saved = localStorage.getItem('qr_checkin_data');
+  const [sessions, setSessions] = useState(() => {
+    const saved = localStorage.getItem('qr_checkin_sessions');
     return saved ? JSON.parse(saved) : [];
   });
+
+  const [activeSessionId, setActiveSessionId] = useState(() => {
+    return localStorage.getItem('qr_checkin_active_session') || null;
+  });
+
+  const [mode, setMode] = useState('dashboard'); // 'dashboard' | 'generator'
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Initialize Default Session if none
   useEffect(() => {
-    localStorage.setItem('qr_checkin_data', JSON.stringify(data));
-  }, [data]);
+    if (sessions.length === 0) {
+      // Optional: could create default here, but let user create.
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('qr_checkin_sessions', JSON.stringify(sessions));
+    if (activeSessionId) localStorage.setItem('qr_checkin_active_session', activeSessionId);
+  }, [sessions, activeSessionId]);
+
+  // Derived Active Data
+  const activeSession = sessions.find(s => s.id === activeSessionId) || null;
+  const data = activeSession ? activeSession.participants : [];
+
+  // Actions
+  const createSession = (name) => {
+    const newSession = {
+      id: Date.now().toString(),
+      name,
+      createdAt: new Date().toISOString(),
+      participants: []
+    };
+    setSessions(prev => [newSession, ...prev]);
+    setActiveSessionId(newSession.id);
+  };
+
+  const deleteSession = (id) => {
+    if (!confirm('정말 이 행사를 삭제하시겠습니까?\n모든 데이터가 사라집니다.')) return;
+    setSessions(prev => prev.filter(s => s.id !== id));
+    if (activeSessionId === id) setActiveSessionId(null);
+  };
+
+  const updateActiveSessionData = (newParticipants) => {
+    if (!activeSessionId) return;
+    setSessions(prev => prev.map(s =>
+      s.id === activeSessionId ? { ...s, participants: newParticipants } : s
+    ));
+  };
 
   const handleDataLoaded = (newData) => {
-    // Merge or Replace? Let's append new ones unique by phone
-    // or just replace for simplicity as per common use case "Upload List"
-    // To be safe, if data exists, confirm.
+    if (!activeSessionId) {
+      alert("먼저 행사를 만들거나 선택해주세요.");
+      return;
+    }
+
+    // Check duplicates within THIS session
+    const currentPhones = new Set(data.map(u => u.phone));
+    const uniqueNew = newData.filter(u => !currentPhones.has(u.phone));
+
+    if (uniqueNew.length === 0) {
+      alert("모든 데이터가 이미 존재합니다.");
+      return;
+    }
+
     if (data.length > 0) {
-      if (confirm("기존 명단을 삭제하고 새로 업로드하시겠습니까? (취소 시 기존 명단 유지)")) {
-        setData(newData);
-      } else {
-        // Append unique
-        const currentPhones = new Set(data.map(u => u.phone));
-        const uniqueNew = newData.filter(u => !currentPhones.has(u.phone));
-        setData([...data, ...uniqueNew]);
+      if (confirm(`기존 ${data.length}명에 ${uniqueNew.length}명을 추가하시겠습니까?`)) {
+        updateActiveSessionData([...data, ...uniqueNew]);
         alert(`${uniqueNew.length}명이 추가되었습니다.`);
       }
     } else {
-      setData(newData);
+      updateActiveSessionData(uniqueNew);
     }
   };
 
   const clearData = () => {
-    if (confirm("모든 데이터를 초기화하시겠습니까?")) {
-      setData([]);
+    if (!activeSessionId) return;
+    if (confirm("현재 행사의 모든 참가자 명단을 초기화하시겠습니까?")) {
+      updateActiveSessionData([]);
     }
   };
 
   const handleSaveToSheet = async () => {
     if (!confirm("Google Sheet에 현재 데이터를 저장하시겠습니까? (체크인 상태 포함)")) return;
+
+    // Note: We are saving only the ACTIVE session data to the sheet for now.
+    // If the user wants to save ALL sessions, the backend/script logic would need to change.
+    // Assuming 1:1 mapping for simplicity given the GAS script structure.
 
     setSaving(true);
     try {
@@ -58,120 +113,159 @@ function App() {
     }
   };
 
+  // CheckIn/Out Handlers for Dashboard
   const handleCheckIn = (phone) => {
-    setData(prev => prev.map(u => u.phone === phone ? { ...u, checkedIn: true, checkedInAt: new Date().toISOString() } : u));
+    const updated = data.map(u => u.phone === phone ? { ...u, checkedIn: true, checkedInAt: new Date().toISOString() } : u);
+    updateActiveSessionData(updated);
   };
 
   const handleCancelCheckIn = (phone) => {
-    setData(prev => prev.map(u => u.phone === phone ? { ...u, checkedIn: false, checkedInAt: null } : u));
+    const updated = data.map(u => u.phone === phone ? { ...u, checkedIn: false, checkedInAt: null } : u);
+    updateActiveSessionData(updated);
   };
 
-  const handleAddMember = (newMember) => {
-    if (data.find(u => u.phone === newMember.phone)) {
-      alert("이미 등록된 전화번호입니다.");
+  const handleAddMember = (member) => {
+    if (data.find(u => u.phone === member.phone)) {
+      alert("이미 등록된 번호입니다.");
       return;
     }
-    setData(prev => [...prev, { ...newMember, checkedIn: false }]);
+    updateActiveSessionData([...data, { ...member, checkedIn: false }]);
   };
 
   return (
-    <div className="min-h-screen pb-20">
-      <div className="container" style={{ paddingTop: '2rem' }}>
-        {/* Header */}
-        <header className="mb-8">
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center gap-3">
-              <div className="icon-box p-3 rounded-xl border border-gray-100 shadow-sm">
-                <QrCode size={24} className="text-indigo-600" />
+    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
+      {/* Mobile Header */}
+      <div className="md:hidden bg-white p-4 flex justify-between items-center shadow-sm sticky top-0 z-50">
+        <div className="flex items-center gap-2 font-bold text-lg text-indigo-600">
+          <QrCode /> QR Check-in
+        </div>
+        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+          {mobileMenuOpen ? <X /> : <Menu />}
+        </button>
+      </div>
+
+      {/* Sidebar (Desktop) / Drawer (Mobile) */}
+      <motion.aside
+        className={`fixed inset-y-0 left-0 z-40 w-80 bg-white border-r border-gray-100 shadow-xl md:shadow-none transform ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-200 ease-in-out md:static md:block overflow-y-auto`}
+      >
+        <div className="p-6">
+          <div className="hidden md:flex items-center gap-2 font-bold text-xl text-indigo-600 mb-8">
+            <div className="p-2 bg-indigo-50 rounded-lg"><QrCode size={24} /></div>
+            QR Check-in
+          </div>
+
+          <SessionManager
+            sessions={sessions}
+            activeSessionId={activeSessionId}
+            onCreateSession={createSession}
+            onSelectSession={(id) => { setActiveSessionId(id); setMobileMenuOpen(false); }}
+            onDeleteSession={deleteSession}
+          />
+
+          <div className="mt-8 pt-8 border-t border-gray-100">
+            <p className="text-xs text-gray-400 mb-4 font-bold uppercase tracking-wider">WORKSPACE</p>
+            <nav className="space-y-1">
+              <button
+                onClick={() => { setMode('dashboard'); setMobileMenuOpen(false); }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${mode === 'dashboard' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-50'}`}
+              >
+                <LayoutDashboard size={18} />
+                체크인 대시보드
+              </button>
+              <button
+                onClick={() => { setMode('generator'); setMobileMenuOpen(false); }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${mode === 'generator' ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-50'}`}
+              >
+                <Send size={18} />
+                명단 관리 및 발송
+              </button>
+            </nav>
+          </div>
+        </div>
+      </motion.aside>
+
+      {/* Main Content Area */}
+      <main className="flex-1 p-4 md:p-8 overflow-y-auto h-screen">
+        <div className="max-w-5xl mx-auto">
+          {!activeSession ? (
+            <div className="flex flex-col items-center justify-center h-[60vh] text-center">
+              <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mb-6 text-indigo-400">
+                <LayoutDashboard size={40} />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                {mode === 'generator' ? 'QR 생성 및 발송' : '관리자 대시보드'}
-              </h1>
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">행사를 선택하거나 새로 만드세요</h2>
+              <p className="text-gray-500 max-w-md">
+                왼쪽 사이드바에서 '새 행사 만들기'를 클릭하여
+                QR 체크인을 시작할 행사를 생성하세요.
+              </p>
             </div>
-
-            {/* Mode Switcher */}
-            <div className="bg-white border border-gray-200 p-1 rounded-lg flex gap-1 shadow-sm">
-              <button
-                onClick={() => setMode('generator')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${mode === 'generator' ? 'bg-[var(--color-primary)] text-white shadow-md' : 'text-gray-500 hover:text-gray-900'}`}
-              >
-                <Send size={16} className="inline mr-2" />
-                발송 모드
-              </button>
-              <button
-                onClick={() => setMode('dashboard')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${mode === 'dashboard' ? 'bg-[var(--color-primary)] text-white shadow-md' : 'text-gray-500 hover:text-gray-900'}`}
-              >
-                <LayoutDashboard size={16} className="inline mr-2" />
-                체크인 관리
-              </button>
-            </div>
-          </div>
-
-          <p className="text-muted" style={{ marginLeft: '3.5rem' }}>
-            {mode === 'generator'
-              ? '참석자 명단을 업로드하고 안내 문자를 발송합니다.'
-              : '실시간 QR 체크인 및 명단 관리를 수행합니다.'}
-          </p>
-        </header>
-
-        {/* Global Toolbar */}
-        {data.length > 0 && (
-          <div className="flex justify-end gap-2 mb-6">
-            <button
-              onClick={handleSaveToSheet}
-              disabled={saving}
-              className="btn-secondary text-green-400 border-green-500/30 hover:bg-green-500/10"
-            >
-              <Database size={16} />
-              {saving ? '저장 중...' : 'DB 동기화'}
-            </button>
-            <button onClick={clearData} className="btn-danger">
-              <Trash2 size={16} /> 초기화
-            </button>
-          </div>
-        )}
-
-        <AnimatePresence mode="wait">
-          {mode === 'generator' ? (
-            <motion.div
-              key="generator"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.2 }}
-              className="space-y-8"
-            >
-              <FileUploader onDataLoaded={handleDataLoaded} />
-              {data.length > 0 && (
-                <>
-                  <SMSPanel data={data} />
-                  <DataTable data={data} />
-                </>
-              )}
-            </motion.div>
           ) : (
             <motion.div
-              key="dashboard"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
+              key={activeSessionId + mode}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-6"
             >
-              <Dashboard
-                data={data}
-                onCheckIn={handleCheckIn}
-                onCancelCheckIn={handleCancelCheckIn}
-                onAddMember={handleAddMember}
-              />
+              {/* Header Strip */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">{activeSession.name}</h1>
+                  <p className="text-gray-500 text-sm mt-1">
+                    {mode === 'dashboard' ? '실시간 체크인 현황 및 스캔' : '참석자 명단 관리 및 안내 문자 발송'}
+                  </p>
+                </div>
+                {data.length > 0 && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleSaveToSheet}
+                      disabled={saving}
+                      className="btn-secondary text-green-600 border-green-200 hover:bg-green-50"
+                    >
+                      <Database size={16} />
+                      {saving ? '저장 중...' : 'DB 동기화'}
+                    </button>
+                    <button className="btn-secondary text-xs" onClick={clearData}>
+                      <Trash2 size={14} /> 목록 초기화
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {mode === 'generator' && (
+                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
+                  <FileUploader onDataLoaded={handleDataLoaded} />
+                  {data.length > 0 && (
+                    <>
+                      <SMSPanel data={data} />
+                      <DataTable data={data} onDelete={(phone) => {
+                        updateActiveSessionData(data.filter(u => u.phone !== phone));
+                      }} />
+                    </>
+                  )}
+                </div>
+              )}
+
+              {mode === 'dashboard' && (
+                <div className="animate-in fade-in slide-in-from-bottom-4">
+                  <Dashboard
+                    data={data}
+                    onCheckIn={handleCheckIn}
+                    onCancelCheckIn={handleCancelCheckIn}
+                    onAddMember={handleAddMember}
+                  />
+                </div>
+              )}
             </motion.div>
           )}
-        </AnimatePresence>
+        </div>
+      </main>
 
-        <footer className="mt-12 text-center text-muted text-sm border-t border-gray-200 pt-8">
-          <p>© 2026 QR Check-in System. All rights reserved.</p>
-        </footer>
-      </div>
+      {/* Overlay for mobile menu */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
     </div>
   );
 }
