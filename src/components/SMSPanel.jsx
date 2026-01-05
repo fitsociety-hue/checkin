@@ -41,14 +41,17 @@ const SMSPanel = ({ data }) => {
             try {
                 const qrDataUrl = await QRCode.toDataURL(JSON.stringify(item), { width: 300, margin: 2 });
 
+                // 2. Upload Image
                 let imageId = null;
                 try {
+                    // Try upload
                     imageId = await uploadImage(apiKey, apiSecret, qrDataUrl);
                     addLog(`${item.name}: QR 이미지 업로드 성공`, 'success');
                 } catch (err) {
-                    console.error(err);
-                    addLog(`${item.name}: QR 이미지 업로드 실패 - ${err.message}`, 'error');
-                    throw new Error("Image Upload Failed");
+                    // If failed, log warning but continue without imageId
+                    console.error("Image upload failed, falling back to SMS", err);
+                    addLog(`${item.name}: QR 이미지 업로드 실패 - 문자만 발송합니다. (${err.message})`, 'warning');
+                    imageId = null; // Ensure null
                 }
 
                 await sendSMS(apiKey, apiSecret, senderNumber, item.phone, message, imageId);

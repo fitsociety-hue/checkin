@@ -25,13 +25,13 @@ export const sendSMS = async (apiKey, apiSecret, from, to, text, imageId = null)
   // The user said "QR Code sending".
   // If we generate the QR client-side, we have a base64 string.
   // Solapi supports uploading images.
-  
+
   // Impl: We will try to rely on just text first (Link), but user likely wants the image.
   // Let's stick to text first or see if we can implement image upload.
   // UPLOADING IMAGE TO SOLAPI:
   // POST https://api.solapi.com/storage/v1/files
   // Body: { file: "base64..." } -> returns fileId.
-  
+
   if (imageId) {
     message.imageId = imageId;
     message.type = 'MMS'; // Switch to MMS if image is present
@@ -60,20 +60,23 @@ export const uploadImage = async (apiKey, apiSecret, base64Image) => {
   const authHeader = `HMAC-SHA256 apiKey=${apiKey}, date=${date}, salt=${salt}, signature=${signature}`;
 
   try {
-    // Solapi expects just the base64 data, possibly without the header "data:image/png;base64,"
-    const cleanBase64 = base64Image.replace(/^data:image\/\w+;base64,/, "");
+    // Safer base64 stripping
+    const cleanBase64 = base64Image.includes('base64,')
+      ? base64Image.split('base64,')[1]
+      : base64Image;
 
     const response = await axios.post('https://api.solapi.com/storage/v1/files', {
       file: cleanBase64,
-      type: 'MMS' // or just leave it for auto detection, but usually specifying purpose helps
+      type: 'MMS'
     }, {
       headers: {
-        Authorization: authHeader
+        Authorization: authHeader,
+        'Content-Type': 'application/json'
       }
     });
     return response.data.fileId;
   } catch (error) {
-     console.error("Image Upload Error:", error);
-     throw error;
+    console.error("Image Upload Error Response:", error.response?.data || error.message);
+    throw error;
   }
 }
