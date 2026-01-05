@@ -121,7 +121,7 @@ const Dashboard = ({ data, onCheckIn, onCancelCheckIn, onAddMember }) => {
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-4 mb-6 border-b border-[var(--color-glass-border)] pb-2">
+            <div className="flex gap-4 mb-6 border-b border-gray-200 pb-2">
                 <button
                     onClick={() => setActiveTab('list')}
                     className={`pb-2 px-4 font-bold transition-colors ${activeTab === 'list' ? 'text-[var(--color-primary)] border-b-2 border-[var(--color-primary)]' : 'text-muted'}`}
@@ -141,14 +141,14 @@ const Dashboard = ({ data, onCheckIn, onCancelCheckIn, onAddMember }) => {
             {/* Tab: Scan */}
             {activeTab === 'scan' && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-md mx-auto">
-                    <div className="glass-panel overflow-hidden relative aspect-square bg-black rounded-2xl mb-4">
+                    <div className="glass-panel overflow-hidden relative aspect-square bg-black rounded-2xl mb-4 shadow-xl">
                         <Scanner
                             onScan={handleScan}
                             onError={(err) => console.log(err)}
                             components={{ audio: false, torch: true }}
                             styles={{ container: { width: '100%', height: '100%' } }}
                         />
-                        <div className="absolute inset-0 border-2 border-[var(--color-primary)] opacity-50 pointer-events-none" style={{ margin: '15%' }} />
+                        <div className="absolute inset-0 border-2 border-white/50 opacity-50 pointer-events-none" style={{ margin: '15%' }} />
 
                         {/* Result Overlay */}
                         <AnimatePresence>
@@ -168,7 +168,7 @@ const Dashboard = ({ data, onCheckIn, onCancelCheckIn, onAddMember }) => {
                                             {scanResult.user ? scanResult.user.name : '알 수 없음'}
                                         </h3>
                                         <p className={`text-lg font-bold ${scanResult.type === 'success' ? 'text-green-400' :
-                                                scanResult.type === 'warning' ? 'text-yellow-400' : 'text-red-400'
+                                            scanResult.type === 'warning' ? 'text-yellow-400' : 'text-red-400'
                                             }`}>
                                             {scanResult.msg}
                                         </p>
@@ -275,11 +275,11 @@ const Dashboard = ({ data, onCheckIn, onCancelCheckIn, onAddMember }) => {
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="glass-panel w-full max-w-md p-6 bg-[#1e293b]"
+                        className="glass-panel w-full max-w-md p-6 bg-white shadow-2xl"
                     >
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-xl font-bold">참석자 개별 추가</h3>
-                            <button onClick={() => setShowAddModal(false)}><XCircle className="text-muted hover:text-white" /></button>
+                            <button onClick={() => setShowAddModal(false)}><XCircle className="text-muted hover:text-black" /></button>
                         </div>
                         <form onSubmit={handleAddSubmit} className="space-y-4">
                             <div>

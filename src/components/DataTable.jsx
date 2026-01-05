@@ -37,7 +37,7 @@ const DataTable = ({ data }) => {
                     <tbody>
                         {data.map((row, index) => (
                             <tr key={index}>
-                                <td className="font-medium" style={{ color: 'white' }}>{row.name}</td>
+                                <td className="font-medium">{row.name}</td>
                                 <td>{row.affiliation}</td>
                                 <td>{row.phone}</td>
                                 <td>{row.vehicle}</td>

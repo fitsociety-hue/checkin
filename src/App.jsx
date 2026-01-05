@@ -81,26 +81,26 @@ function App() {
         <header className="mb-8">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-3">
-              <div className="icon-box p-3 rounded-xl">
-                <QrCode size={24} color="white" />
+              <div className="icon-box p-3 rounded-xl border border-gray-100 shadow-sm">
+                <QrCode size={24} className="text-indigo-600" />
               </div>
-              <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
+              <h1 className="text-2xl font-bold text-gray-900">
                 {mode === 'generator' ? 'QR 생성 및 발송' : '관리자 대시보드'}
               </h1>
             </div>
 
             {/* Mode Switcher */}
-            <div className="bg-[rgba(255,255,255,0.1)] p-1 rounded-lg flex gap-1">
+            <div className="bg-white border border-gray-200 p-1 rounded-lg flex gap-1 shadow-sm">
               <button
                 onClick={() => setMode('generator')}
-                className={`px - 4 py - 2 rounded - md text - sm font - medium transition - all ${mode === 'generator' ? 'bg-[var(--color-primary)] text-white shadow-lg' : 'text-muted hover:text-white'} `}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${mode === 'generator' ? 'bg-[var(--color-primary)] text-white shadow-md' : 'text-gray-500 hover:text-gray-900'}`}
               >
                 <Send size={16} className="inline mr-2" />
                 발송 모드
               </button>
               <button
                 onClick={() => setMode('dashboard')}
-                className={`px - 4 py - 2 rounded - md text - sm font - medium transition - all ${mode === 'dashboard' ? 'bg-[var(--color-primary)] text-white shadow-lg' : 'text-muted hover:text-white'} `}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${mode === 'dashboard' ? 'bg-[var(--color-primary)] text-white shadow-md' : 'text-gray-500 hover:text-gray-900'}`}
               >
                 <LayoutDashboard size={16} className="inline mr-2" />
                 체크인 관리
@@ -168,7 +168,7 @@ function App() {
           )}
         </AnimatePresence>
 
-        <footer className="mt-12 text-center text-muted text-sm border-t border-[rgba(255,255,255,0.1)] pt-8">
+        <footer className="mt-12 text-center text-muted text-sm border-t border-gray-200 pt-8">
           <p>© 2026 QR Check-in System. All rights reserved.</p>
         </footer>
       </div>
