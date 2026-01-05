@@ -11,6 +11,7 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@yudiel/react-qr-scanner": "^2.5.0",
     "axios": "^1.13.2",
     "crypto-js": "^4.2.0",
     "framer-motion": "^12.23.26",
