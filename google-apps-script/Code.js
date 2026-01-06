@@ -32,7 +32,7 @@ function doPost(e) {
         if (data && data.length > 0) {
             // Add Header if new
             if (sheet.getLastRow() === 0) {
-                sheet.appendRow(["타임스탬프", "세션명", "이름", "소속", "전화번호", "차량번호", "체크인여부", "체크인시간"]);
+                sheet.appendRow(["타임스탬프", "세션명", "이름", "소속", "전화번호", "차량번호", "교육명", "체크인여부", "체크인시간"]);
             }
 
             var rows = data.map(function (row) {
@@ -43,6 +43,7 @@ function doPost(e) {
                     row.affiliation,
                     "'" + row.phone,           // Force string for phone
                     row.vehicle,
+                    row.eventName || "",       // Event Name from CSV
                     row.checkedIn ? "O" : "X",
                     row.checkedInAt || ""
                 ];

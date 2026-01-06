@@ -18,12 +18,14 @@ const FileUploader = ({ onDataLoaded }) => {
                     const affKey = keys.find(k => k.includes('소속') || k.includes('Affiliation') || k.includes('Group'));
                     const phoneKey = keys.find(k => k.includes('전화') || k.includes('Phone') || k.includes('Tel'));
                     const carKey = keys.find(k => k.includes('차량') || k.includes('Vehicle') || k.includes('Car'));
+                    const eventKey = keys.find(k => k.includes('교육') || k.includes('행사') || k.includes('Event'));
 
                     return {
                         name: item[nameKey] || '',
                         affiliation: item[affKey] || '',
                         phone: item[phoneKey] || '',
                         vehicle: item[carKey] || '',
+                        eventName: item[eventKey] || '',
                         raw: item
                     };
                 });
@@ -37,7 +39,7 @@ const FileUploader = ({ onDataLoaded }) => {
     };
 
     const downloadTemplate = () => {
-        const csvContent = "\uFEFF이름,소속,전화번호,차량번호\n홍길동,전략기획팀,010-1234-5678,12가3456";
+        const csvContent = "\uFEFF이름,소속,전화번호,차량번호,교육명\n홍길동,전략기획팀,010-1234-5678,12가3456,인권교육";
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");

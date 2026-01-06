@@ -103,6 +103,7 @@ const DataTable = ({ data, onDelete, onBatchDelete }) => {
                             <th className="px-4 py-3 bg-gray-50">소속</th>
                             <th className="px-4 py-3 bg-gray-50">전화번호</th>
                             <th className="px-4 py-3 bg-gray-50">차량번호</th>
+                            <th className="px-4 py-3 bg-gray-50">교육명</th>
                             <th className="px-4 py-3 bg-gray-50">QR Code</th>
                             <th className="px-4 py-3 bg-gray-50 text-right">관리</th>
                         </tr>
@@ -122,6 +123,7 @@ const DataTable = ({ data, onDelete, onBatchDelete }) => {
                                 <td className="px-4 py-3 text-gray-500">{row.affiliation}</td>
                                 <td className="px-4 py-3 text-gray-500 font-mono text-xs">{row.phone}</td>
                                 <td className="px-4 py-3 text-gray-500">{row.vehicle}</td>
+                                <td className="px-4 py-3 text-gray-500 text-sm">{row.eventName || '-'}</td>
                                 <td className="px-4 py-3">
                                     <div style={{ background: 'white', padding: '0.25rem', borderRadius: '0.25rem', width: 'fit-content', border: '1px solid #eee' }}>
                                         <QRCodeCanvas
