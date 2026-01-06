@@ -1,5 +1,5 @@
 export const saveToSheet = async (data, sessionName) => {
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbx6Eu-BDvxEqVVdgr52vi-uSXrHQusDP423qJ7pF47LTMCQ9CgQXP_XJngL3pye7_M-/exec'; // Updated 2026-01-06
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbwM-XrbQuv_CxMh9xv3Ttyq-qTpgxfZXC6Fme8tt2S7EWNZD7JZZnsotgdPx0oEz5KU/exec'; // Updated 2026-01-06 (2)
 
     try {
         // Google Apps Script usually works best with text/plain to avoid preflight issues in CORS
