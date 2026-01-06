@@ -19,13 +19,17 @@ const FileUploader = ({ onDataLoaded }) => {
                     const phoneKey = keys.find(k => k.includes('전화') || k.includes('Phone') || k.includes('Tel'));
                     const carKey = keys.find(k => k.includes('차량') || k.includes('Vehicle') || k.includes('Car'));
                     const eventKey = keys.find(k => k.includes('교육') || k.includes('행사') || k.includes('Event'));
+                    const disabilityKey = keys.find(k => k.includes('장애') || k.includes('Disability'));
+                    const assistiveKey = keys.find(k => k.includes('보장구') || k.includes('Assistive'));
 
                     return {
                         name: item[nameKey] || '',
                         affiliation: item[affKey] || '',
+                        eventName: item[eventKey] || '',
                         phone: item[phoneKey] || '',
                         vehicle: item[carKey] || '',
-                        eventName: item[eventKey] || '',
+                        disability: item[disabilityKey] || '',
+                        assistiveDevice: item[assistiveKey] || '',
                         raw: item
                     };
                 });
@@ -39,7 +43,7 @@ const FileUploader = ({ onDataLoaded }) => {
     };
 
     const downloadTemplate = () => {
-        const csvContent = "\uFEFF이름,소속,전화번호,차량번호,교육명\n홍길동,전략기획팀,010-1234-5678,12가3456,인권교육";
+        const csvContent = "\uFEFF이름,소속,교육/행사명,전화번호,차량번호,장애유무,보장구\n홍길동,지역주민,인권교육,010-1234-5678,12가3456,장애인,전동휠체어";
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
