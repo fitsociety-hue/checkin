@@ -414,3 +414,222 @@ body {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.8rem;
 }
+
+/* Tailwind Utility Class Polyfills */
+.w-80 {
+  width: 20rem;
+}
+
+.flex-1 {
+  flex: 1 1 0%;
+}
+
+.max-w-5xl {
+  max-width: 64rem;
+}
+
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.min-h-screen {
+  min-height: 100vh;
+}
+
+.h-screen {
+  height: 100vh;
+}
+
+.bg-slate-50 {
+  background-color: #f8fafc;
+}
+
+.overflow-y-auto {
+  overflow-y: auto;
+}
+
+.sticky {
+  position: sticky;
+}
+
+.top-0 {
+  top: 0;
+}
+
+.z-50 {
+  z-index: 50;
+}
+
+.z-40 {
+  z-index: 40;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.shadow-sm {
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+.shadow-xl {
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+.shadow-md {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.border-r {
+  border-right-width: 1px;
+}
+
+.border-t {
+  border-top-width: 1px;
+}
+
+.border-gray-100 {
+  border-color: #f3f4f6;
+}
+
+.text-gray-900 {
+  color: #111827;
+}
+
+.text-gray-600 {
+  color: #4b5563;
+}
+
+.text-gray-500 {
+  color: #6b7280;
+}
+
+.text-gray-400 {
+  color: #9ca3af;
+}
+
+.text-indigo-600 {
+  color: #4f46e5;
+}
+
+.text-indigo-400 {
+  color: #818cf8;
+}
+
+.text-green-600 {
+  color: #16a34a;
+}
+
+.bg-white {
+  background-color: #ffffff;
+}
+
+.bg-indigo-50 {
+  background-color: #eef2ff;
+}
+
+.bg-indigo-600 {
+  background-color: #4f46e5;
+}
+
+.rounded-lg {
+  border-radius: 0.5rem;
+}
+
+.rounded-xl {
+  border-radius: 0.75rem;
+}
+
+.rounded-full {
+  border-radius: 9999px;
+}
+
+.p-2 {
+  padding: 0.5rem;
+}
+
+.px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.py-3 {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+.pt-8 {
+  padding-top: 2rem;
+}
+
+.space-y-1> :not([hidden])~ :not([hidden]) {
+  margin-top: 0.25rem;
+}
+
+.space-y-6> :not([hidden])~ :not([hidden]) {
+  margin-top: 1.5rem;
+}
+
+.hidden {
+  display: none;
+}
+
+.block {
+  display: block;
+}
+
+.flex {
+  display: flex;
+}
+
+/* .flex-col is already defined in updated file but we make sure */
+.flex-col {
+  flex-direction: column;
+}
+
+@media (min-width: 768px) {
+  .md\:hidden {
+    display: none;
+  }
+
+  .md\:flex {
+    display: flex;
+  }
+
+  .md\:flex-row {
+    flex-direction: row;
+  }
+
+  .md\:items-center {
+    align-items: center;
+  }
+
+  .md\:static {
+    position: static;
+  }
+
+  .md\:block {
+    display: block;
+  }
+
+  .md\:shadow-none {
+    box-shadow: none;
+  }
+
+  .md\:translate-x-0 {
+    transform: translateX(0);
+  }
+
+  .md\:p-8 {
+    padding: 2rem;
+  }
+}
