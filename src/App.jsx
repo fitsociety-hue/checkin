@@ -4,9 +4,10 @@ import DataTable from './components/DataTable';
 import SMSPanel from './components/SMSPanel';
 import Dashboard from './components/Dashboard';
 import SessionManager from './components/SessionManager';
-import { QrCode, Trash2, Database, LayoutDashboard, Send, Menu, X } from 'lucide-react';
+import PublicEventList from './components/PublicEventList';
+import { QrCode, Trash2, Database, LayoutDashboard, Send, Menu, X, CloudDownload } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { saveToSheet } from './utils/googleSheets';
+import { saveToSheet, fetchSessionData } from './utils/googleSheets';
 
 function App() {
   const [sessions, setSessions] = useState(() => {
@@ -98,13 +99,8 @@ function App() {
   const handleSaveToSheet = async () => {
     if (!confirm("Google Sheet에 현재 데이터를 저장하시겠습니까? (체크인 상태 포함)")) return;
 
-    // Note: We are saving only the ACTIVE session data to the sheet for now.
-    // If the user wants to save ALL sessions, the backend/script logic would need to change.
-    // Assuming 1:1 mapping for simplicity given the GAS script structure.
-
     setSaving(true);
     try {
-      // Pass session name to help identify data in sheet
       await saveToSheet(data, activeSession?.name || 'Unknown Session');
       alert("데이터 전송이 완료되었습니다."); // Note: Due to no-cors, we assume success if no network error
     } catch (error) {
@@ -112,6 +108,33 @@ function App() {
       alert("저장 중 오류가 발생했습니다. (콘솔 확인 필요)");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleLoadCloudSession = async (sessionSummary) => {
+    if (confirm(`'${sessionSummary.name}' 데이터를 불러오시겠습니까?\n새로운 행사로 추가됩니다.`)) {
+      setSaving(true); // Reusing loading state
+      try {
+        const response = await fetchSessionData(sessionSummary.name);
+        if (response.status === 'success') {
+          const newSession = {
+            id: Date.now().toString(),
+            name: sessionSummary.name,
+            createdAt: new Date().toISOString(),
+            participants: response.data
+          };
+          setSessions(prev => [newSession, ...prev]);
+          setActiveSessionId(newSession.id);
+          alert("데이터를 성공적으로 불러왔습니다.");
+        } else {
+          alert("데이터 로드 실패: " + response.message);
+        }
+      } catch (error) {
+        console.error(error);
+        alert("데이터 로드 중 오류가 발생했습니다.");
+      } finally {
+        setSaving(false);
+      }
     }
   };
 
@@ -190,15 +213,24 @@ function App() {
       <main className="flex-1 p-4 md:p-8 overflow-y-auto h-screen">
         <div className="max-w-5xl mx-auto">
           {!activeSession ? (
-            <div className="flex flex-col items-center justify-center h-[60vh] text-center">
-              <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mb-6 text-indigo-400">
-                <LayoutDashboard size={40} />
+            <div className="space-y-8">
+              <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 text-center">
+                <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4 text-indigo-500">
+                  <LayoutDashboard size={32} />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">환영합니다</h2>
+                <p className="text-gray-500 max-w-md mx-auto mb-6">
+                  새로운 행사를 만들거나, 아래 목록에서 진행 중인 행사를 선택하여 시작하세요.
+                </p>
+                <button
+                  onClick={() => document.querySelector('button[aria-label="Create Session"]')?.click()} // Hacky but works if we don't expose ref from SessionManager
+                  className="btn-primary"
+                >
+                  새 행사 만들기
+                </button>
               </div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">행사를 선택하거나 새로 만드세요</h2>
-              <p className="text-gray-500 max-w-md">
-                왼쪽 사이드바에서 '새 행사 만들기'를 클릭하여
-                QR 체크인을 시작할 행사를 생성하세요.
-              </p>
+
+              <PublicEventList onLoadSession={handleLoadCloudSession} />
             </div>
           ) : (
             <motion.div
